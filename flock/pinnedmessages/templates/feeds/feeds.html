@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+{% load i18n %}
+
+<html lang="en-US">
+  <head>
+    <title>Comment</title>
+    <meta charset="utf-8" />
+    <style>
+      ul.stream {
+        margin: 0;
+        padding: 0;
+      }
+
+      ul.stream li {
+        list-style: none;
+        border-bottom: 1px solid #eeeeee;
+        padding: 1em 0;
+      }
+
+      ul.stream li:last-child {
+        border-bottom: none;
+      }
+
+      ul.stream li a img.user {
+        width: 60px;
+        border-radius: 100px;
+        float: left;
+      }
+
+      ul.stream li div.post {
+        margin-left: 60px;
+        padding: 0 0 0 1.2em;
+        overflow-x: auto;
+      }
+
+      ul.stream li div.post h3 {
+        font-size: 1em;
+        margin: 0;
+        margin-bottom: .2em;
+      }
+
+      ul.stream li div.post h3 small {
+        margin-left: .3em;
+        font-size: .8em;
+      }
+
+      ul.stream li div.post p {
+        margin: 0;
+      }
+
+      ul.stream li div.post div.interaction {
+        padding-top: .2em;
+      }
+
+      ul.stream li div.post div.interaction a {
+        margin-right: .6em;
+        font-size: .8em;
+      }
+
+      .stream-update {
+        text-align: center;
+        border-bottom: 1px solid #eeeeee;
+        display: none;
+      }
+
+      .stream-update a {
+        display: block;
+        padding: .6em 0;
+        background-color: #f5f8fa;
+      }
+
+      .stream-update a:hover {
+        text-decoration: none;
+        background-color: #e1e8ed;
+      }
+
+      .compose {
+        display: none;
+        border-bottom: 1px solid #eee;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+
+      .compose h2 {
+        font-size: 1.4em;
+      }
+
+      .comments {
+        margin-top: .6em;
+        display: none;
+      }
+
+      .comments ol {
+        margin: .8em 0 0;
+        padding: .2em 0;
+        background-color: #f4f4f4;
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+
+      .comments ol li {
+        list-style: none;
+        padding: 0;
+      }
+
+      .comments ol li img.user-comment {
+        width: 35px;
+        border-radius: 4px;
+        float: left;
+        margin-left: 10px;
+      }
+
+      .comments ol li div {
+        margin-left: 45px;
+        padding: 0 .8em;
+        font-size: .9em;
+      }
+
+      .comments ol li {
+        padding: .6em .6em .6em 0;
+        border-bottom: none;
+      }
+
+      .comments ol li h4 {
+        margin: 0;
+        margin-left: 45px;
+        padding: 0 0 .2em .8em;
+        font-size: .9em;
+      }
+
+      .comments ol li h4 small {
+        margin-left: .3em;
+      }
+
+      .empty {
+        margin: 0 .8em;
+        font-size: .9em;
+      }
+
+      .load {
+        text-align: center;
+        padding-top: 1em;
+        border-top: 1px solid #eeeeee;
+        display: none;
+        padding: 15px 0;
+      }
+
+      .loadcomment {
+        text-align: center;
+      }
+
+      .remove-feed {
+        color: #bbbbbb; 
+        font-size: .8em; 
+        padding-top: .2em;
+        float: right;
+        cursor: pointer;
+      }
+
+      .remove-feed:hover {
+        color: #333333;
+      }
+
+      .panel-feed {
+        margin-top: 20px;
+      }
+
+      .panel-feed .panel-body {
+        padding: 0;
+      }
+
+      .feed-container {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      </style>
+
+  </head>
+  <body id="index" class="home">
+
+    <section id="comments" class="body" style ="margin-top:10%">
+      
+      <header>
+        <h2>Pinned Messages</h2>
+      </header>
+      <ul class="stream">
+      {% for feed in all_pinned %}
+        <p>{{ feed.text }}</p>
+        <li feed-id={{ feed.primaryKey }} >
+          <div class="feed-container">
+  <a href={{ feed.userName }}><img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQpVKnjioUpZxDIY25ibaoJdggaxBfDe3cQIHiFCfFBhqrEvqOI6uUuQQ" class="user"></a>
+            <div class="post">
+              <h3>{{ feed.userName }}</h3>
+              <div class="interaction">
+                  <a href="#" class="like" id="like">
+                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                    <span class="text">{% trans 'Like' %}</span>
+                    (<span class="like-count">{{ feed.likes }}</span>)
+                  </a>
+                  <a href="#" class="like" id="dislike">
+                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                    <span class="text">{% trans 'Dislike' %}</span>
+                    (<span class="like-count">{{ feed.dislikes }}</span>)
+                  </a>
+              </div>
+            </div>
+          </div>
+        </li>
+
+      {% endfor %}
+      </ul>
+
+        <script type="text/javascript" src="https://apps-static.flock.co/js-sdk/0.1.0/flock.js"></script>
+                <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        $("ul.stream").on("click", "#like", function () {
+        var li = $(this).closest("li");
+        var feed = $(li).attr("feed-id");
+        var userId = "{{ userId }}";
+        $.ajax({
+          url: 'https://528de8ca.ngrok.io/pinnedmessages/like',
+          data: {
+            'feed': feed,
+            'userId': userId,
+          },
+          async:true,
+          crossOrigin:true,
+          type: 'POST',
+          error: function() {
+            alert("An Error Occured. Please Try Again");
+           },
+          success: function (data) {            
+            $("#like .like-count", li).text(data);
+          }
+        });
+
+        return false;
+      });
+
+    $("ul.stream").on("click", "#dislike", function () {
+        var li = $(this).closest("li");
+        var feed = $(li).attr("feed-id");
+        var userId = "{{ userId }}";
+        $.ajax({
+          url: 'https://528de8ca.ngrok.io/pinnedmessages/dislike',
+          data: {
+            'feed': feed,
+            'userId': userId,
+          },
+          async:true,
+          crossOrigin:true,
+          type: 'POST',
+          error: function() {
+            alert("An Error Occured. Please Try Again");
+           },
+          success: function (data) {
+            $("#dislike .like-count", li).text(data);
+          }
+        });
+
+        return false;
+      });
+
+
+    </script>
+
+
+
+  </body>
+
+</html>
