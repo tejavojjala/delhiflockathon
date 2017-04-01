@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 {% load i18n %}
-
+{% load humanize %}
 <html lang="en-US">
   <head>
     <title>Comment</title>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
       ul.stream {
         margin: 0;
@@ -185,12 +186,15 @@
       </header>
       <ul class="stream">
       {% for feed in all_pinned %}
-        <p>{{ feed.text }}</p>
         <li feed-id={{ feed.primaryKey }} >
           <div class="feed-container">
-  <a href={{ feed.userName }}><img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQpVKnjioUpZxDIY25ibaoJdggaxBfDe3cQIHiFCfFBhqrEvqOI6uUuQQ" class="user"></a>
+  <a href={{ feed.userName }}><img src="{{ feed.userDp }}" class="user"></a>
             <div class="post">
-              <h3>{{ feed.userName }}</h3>
+              {% if feed.userId == userId %}
+                <span class="glyphicon glyphicon-remove remove-feed" title="{% trans 'Click to remove this feed' %}"></span>
+              {% endif %}
+              <h3><b>{{ feed.userName }}</b> <small>{{ feed.date|naturaltime }}</small></h3>
+              <p>{{ feed.text }}</p>
               <div class="interaction">
                   <a href="#" class="like" id="like">
                     <span class="glyphicon glyphicon-thumbs-up"></span>
@@ -198,10 +202,23 @@
                     (<span class="like-count">{{ feed.likes }}</span>)
                   </a>
                   <a href="#" class="like" id="dislike">
-                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                    <span class="glyphicon glyphicon-thumbs-down"></span>
                     <span class="text">{% trans 'Dislike' %}</span>
                     (<span class="like-count">{{ feed.dislikes }}</span>)
                   </a>
+                  <a href="#" class="comment">
+                    <span class="glyphicon glyphicon-comment"></span> {% trans 'Comment' %}
+                    (<span class="comment-count">0</span>)
+                  </a>
+              </div>
+              <div class="comments">
+                <form role="form" method="post" action="{{ comment }}" onsubmit="return false">
+                  <input type="hidden" name="feed" value="{{ feed.primaryKey }}">
+                  <input type="text" class="form-control input-sm" placeholder="{% trans 'Write a comment...' %}" name="post" maxlength="255">
+                </form>
+                <ol class="clearfix">
+                  {% comment %} Place holder to load feed comments {% endcomment %}
+                </ol>
               </div>
             </div>
           </div>
@@ -230,7 +247,8 @@
             alert("An Error Occured. Please Try Again");
            },
           success: function (data) {            
-            $("#like .like-count", li).text(data);
+            $("#like .like-count", li).text(data["likes"]);
+            $("#dislike .like-count", li).text(data["dislikes"]);
           }
         });
 
@@ -254,13 +272,77 @@
             alert("An Error Occured. Please Try Again");
            },
           success: function (data) {
-            $("#dislike .like-count", li).text(data);
+            $("#like .like-count", li).text(data["likes"]);
+            $("#dislike .like-count", li).text(data["dislikes"]);
           }
         });
 
         return false;
       });
 
+      $("ul.stream").on("click", ".remove-feed", function () {
+      var li = $(this).closest("li");
+      var feed = $(li).attr("feed-id");
+      $.ajax({
+        url: 'https://528de8ca.ngrok.io/pinnedmessages/remove',
+        data: {
+          'feed': feed
+        },
+        type: 'post',
+        cache: false,
+        success: function (data) {
+          $(li).fadeOut(400, function () {
+            $(li).remove();
+          });
+        }
+      });
+    });
+
+  $("ul.stream").on("click", ".comment", function () { 
+    var post = $(this).closest(".post");
+    if ($(".comments", post).hasClass("tracking")) {
+      $(".comments", post).slideUp();
+      $(".comments", post).removeClass("tracking");
+    }
+    else {
+      $(".comments", post).show();
+      $(".comments", post).addClass("tracking");
+      $(".comments input[name='post']", post).focus();
+      var feed = $(post).closest("li").attr("feed-id");
+      $.ajax({
+        url: '/https://528de8ca.ngrok.io/pinnedmessages/comment',
+        data: { 'feed': feed },
+        cache: false,
+        beforeSend: function () {
+          $("ol", post).html("<li class='loadcomment'><img src='/static/img/loading.gif'></li>");
+        },
+        success: function (data) {
+          $("ol", post).html(data);
+          $(".comment-count", post).text($("ol li", post).not(".empty").length);
+        }
+      });
+    }
+    return false;
+  });
+
+    function track_comments () {
+    $(".tracking").each(function () {
+      var container = $(this);
+      var feed = $(this).closest("li").attr("feed-id");
+      $.ajax({
+        url: '/feeds/track_comments/',
+        data: {'feed': feed},
+        cache: false,
+        success: function (data) {
+          $("ol", container).html(data);
+          var post_container = $(container).closest(".post");
+          $(".comment-count", post_container).text($("ol li", container).length);
+        }
+      });
+    });
+    window.setTimeout(track_comments, 30000);
+  };
+  track_comments();
 
     </script>
 

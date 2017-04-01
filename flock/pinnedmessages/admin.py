@@ -1,6 +1,8 @@
 from django.contrib import admin
-from pinnedmessages.models import Messages
+from pinnedmessages.models import Messages,Reactions,Users
 
 # Register your models here.
 
 admin.site.register(Messages)
+admin.site.register(Reactions)
+admin.site.register(Users)

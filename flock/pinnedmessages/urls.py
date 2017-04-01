@@ -8,4 +8,5 @@ urlpatterns = [
 	url(r'^pinnedmessages$', views.pinnedmessages, name='pinnedmessages'),
 	url(r'^pinnedmessages/like$', views.like, name='like'),
 	url(r'^pinnedmessages/dislike$', views.dislike, name='dislike'),
+	url(r'^pinnedmessages/remove$', views.remove, name='remove'),
 ]
