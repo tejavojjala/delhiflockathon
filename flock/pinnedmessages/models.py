@@ -49,5 +49,18 @@ class Users(models.Model):
 	userId = models.CharField(max_length = 100)
 	objects = UsersManager()
 
-#class Comments(models.Model):
+class CommentsManager(models.Manager):
+	def create_comment(self,userId, userName, userDp, text, parent):
+		comment = self.create(userId = userId, userName = userName, userDp = userDp, text = text, parent = parent)
+		return comment
+
+class Comments(models.Model):
+	primaryKey = models.AutoField(primary_key = True)
+	userId = models.CharField(max_length = 100)
+	date = models.DateTimeField(auto_now_add = True)
+	userName = models.CharField(max_length = 100)
+	userDp = models.CharField(max_length = 1000)
+	text = models.CharField(max_length=2000)
+	parent = models.ForeignKey(Messages, on_delete=models.CASCADE)
+	objects = CommentsManager()
 
