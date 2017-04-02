@@ -188,16 +188,21 @@
         padding-left: 15px;
         padding-right: 15px;
       }
+      #refresh{
+        position:relative;
+        right:0px;
+        margin-top: 0px;
+        width:5px;
+        height: 5px;
+      }
+
       </style>
 
   </head>
   <body id="index" class="home">
-
+    <img type="button" id="refresh" src = "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTpifzjo2PyuncwjMsaNFfHu_04X2PjO4MAeEd5brpuPxpJ-veX">
     <section id="comments" class="body" style ="margin-top:10%">
       
-      <header>
-        <h2>Pinned Messages</h2>
-      </header>
       <ul class="stream">
       {% for feed in all_pinned %}
         <li feed-id={{ feed.primaryKey }} >
@@ -211,18 +216,18 @@
               <p>{{ feed.text }}</p>
               <div class="interaction">
                   <a href="#" class="like" id="like">
-                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                    <span class="glyphicon glyphicon-thumbs-up" style="font-size:15px"></span>
                     <span class="text">{% trans 'Like' %}</span>
                     (<span class="like-count">{{ feed.likes }}</span>)
                   </a>
                   <a href="#" class="like" id="dislike">
-                    <span class="glyphicon glyphicon-thumbs-down"></span>
+                    <span class="glyphicon glyphicon-thumbs-down" style="font-size:15px"></span>
                     <span class="text">{% trans 'Dislike' %}</span>
                     (<span class="like-count">{{ feed.dislikes }}</span>)
                   </a>
                   <a href="#" class="comment">
-                    <span class="glyphicon glyphicon-comment"></span> {% trans 'Comment' %}
-                    (<span class="comment-count">0</span>)
+                    <span class="glyphicon glyphicon-comment" style="font-size:15px"></span> {% trans 'Comment' %}
+                    (<span class="comment-count">{{ feed.numcomments }}</span>)
                   </a>
               </div>
               <div class="comments">
@@ -269,6 +274,18 @@
 
         return false;
       });
+
+
+    $('#refresh').click(function() {
+      $(this).fadeTo(1500, 0.1).fadeTo(1000, 1)
+      //$(this).fadeOut(1000,0.2).delay(2100).fadeIn(1000,1);
+      //$(this).fadeTo("slow",0.4)(function(){
+
+         location.reload();
+         
+      //});
+      
+    });
 
     $("ul.stream").on("click", "#dislike", function () {
         var li = $(this).closest("li");

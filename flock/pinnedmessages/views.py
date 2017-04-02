@@ -44,9 +44,10 @@ def events(request, format = None):
 			userDp = flock_client.get_user_info()["profileImage"]
 			msg_details = requests.get("https://api.flock.co/v1/chat.fetchMessages", params={"token": flock_user_token, "uids": "["+messageUid+"]", "chat": groupId})
 			text = json.loads(msg_details.text)[0]["text"]
+			if(flock_user!=json.loads(msg_details.text)[0]["from"]):
+				return Response(request.data,status=400)
 			message = Messages.objects.create_message(flock_user=flock_user, flock_user_name = flock_user_name, userDp = userDp, groupId = groupId, isPinned = isPinned, text = text, messageUid = messageUid)
 			message.save()
-#			flock_client = FlockClient(token=BOT_TOKEN,app_id=flock_user)
 			allmembers = flock_client.get_group_members(groupId)
 			for i in range(0,len(allmembers)):
 				flock_client = FlockClient(token=BOT_TOKEN,app_id=APP_ID)
@@ -58,6 +59,11 @@ def events(request, format = None):
 					simple_message = Message(to=user_guid,text="You pinned a message in group "+groupName)					
 				res = flock_client.send_chat(simple_message)
 			return Response(request.data, status = 200)
+
+		elif(content["name"]=="app.uninstall"):
+			user = User.objects.get(userId=content["userId"])
+			user.delete()
+			return Response(request.data,status=200)
 
 	return Response(request.data, status = 400)
 
@@ -159,8 +165,10 @@ def comment(request):
 		if len(post) > 0:
 			post = post[:255]
 			message = Messages.objects.get(primaryKey = feed_id)
-			Comments.objects.create_comment(userId=userId,userName="teja vojjala",userDp=userDp,text=post,parent = message)
+			Comments.objects.create_comment(userId=userId,userName=userInfo["firstName"]+" "+userInfo["lastName"],userDp=userDp,text=post,parent = message)
 			allComments = Comments.objects.filter(parent = message).order_by('-date')
+			message.numcomments = len(allComments)
+			message.save()
 			flock_client = FlockClient(token=BOT_TOKEN,app_id=APP_ID)
 			user_guid = message.userId
 			groupName = message.groupId

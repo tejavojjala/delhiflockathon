@@ -25,6 +25,7 @@ class Messages(models.Model):
 	text = models.CharField(max_length=2000)
 	likes = models.IntegerField(default=0)
 	dislikes = models.IntegerField(default=0)
+	numcomments = models.IntegerField(default=0)
 	messageUid = models.CharField(max_length=100)
 	objects = MessagesManager()
 
